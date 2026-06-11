@@ -5,7 +5,7 @@ from langchain_community.document_loaders import TextLoader, DirectoryLoader
 #this helps to chunk it up after loading
 from langchain_text_splitters import CharacterTextSplitter
 #to convert chunks to vector embeddings
-from langchain_openai import OpenAIEmbeddings
+from langchain_ollama import  OllamaEmbeddings
 #vector db to store embeddings, and chroma db can be hosted locally so easier
 from langchain_chroma import Chroma
 #to load environment variables
@@ -68,11 +68,38 @@ def split_documents(documents):
     
     return chunks
 
+#embedding ,creating and storing into the vector db 
+#passing all the chunks and the location where we want he db to be created
+def create_vector_store(chunks, persist_directory= "db/chroma_db"):
+    #embedding model to convert the chunks in vector embeddings
+    #initializing the embedding model
+    embedding_model= OllamaEmbeddings(model="nomic-embed-text")
+    
+    #creating chromadb vector store
+    #this actually takes all chunks converts into vector embeddings and store in vector db
+    vectorstore =Chroma.from_documents(
+        documents= chunks, #it takes the langchain documents
+        embedding=embedding_model, #we have specified the model above
+        persist_directory=persist_directory, #this is where we store it locally
+        collection_metadata={"hnsw:Space":"cosine"} #the algorithm is cosine similarity
+    )
+    print("Finished creating the store")
+
+    print(f"created and saved to {persist_directory}")
+
+    return vectorstore
+
 def main():
     print("Main function")
 
     #loading the files
     documents=load_documents(docs_path="docs")
+
+    #chunking the documents
+    chunks=split_documents(documents) 
+
+    #embedding and storing in vector db
+    vectorstore=create_vector_store(chunks)
 
 if __name__ == "__main__":
     main()
