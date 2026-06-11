@@ -5,7 +5,7 @@ from langchain_community.document_loaders import TextLoader, DirectoryLoader
 #this helps to chunk it up after loading
 from langchain_text_splitters import CharacterTextSplitter
 #to convert chunks to vector embeddings
-from langchain_ollama import  OllamaEmbeddings
+from langchain_community.embeddings import OllamaEmbeddings
 #vector db to store embeddings, and chroma db can be hosted locally so easier
 from langchain_chroma import Chroma
 #to load environment variables
@@ -35,12 +35,12 @@ def load_documents(docs_path="docs"):
     if len(documents)==0:
         raise FileNotFoundError("No .txt files found add your documents first")
     
-    for i, doc in enumerate(documents[:2]):
-        print(f"\nDocument {i+1}:")
-        print(f" Source:{doc.metadata['source']}")
-        print(f"Content length: {len(doc.page_content)} characters")
-        print(f"Content preview: {doc.page_content[:100]}")
-        print(f"metadata:{doc.metadata}")
+    # for i, doc in enumerate(documents[:2]):
+    #     print(f"\nDocument {i+1}:")
+    #     print(f" Source:{doc.metadata['source']}")
+    #     print(f"Content length: {len(doc.page_content)} characters")
+    #     print(f"Content preview: {doc.page_content[:100]}")
+    #     print(f"metadata:{doc.metadata}")
     
     return documents 
 
@@ -55,16 +55,16 @@ def split_documents(documents):
 
     chunks= text_splitter.split_documents(documents)
 
-    if chunks:
-        for i, chunk in enumerate(chunks[:5]):
-            print(f"\n Chunk {i+1}")
-            print(f"Source: {chunk.metadata['source']}")
-            print(f"Length: {len(chunk.page_content)} characters")
-            print("content:")
-            print(chunk.page_content)
+    # if chunks:
+    #     for i, chunk in enumerate(chunks[:5]):
+    #         print(f"\n Chunk {i+1}")
+    #         print(f"Source: {chunk.metadata['source']}")
+    #         print(f"Length: {len(chunk.page_content)} characters")
+    #         print("content:")
+    #         print(chunk.page_content)
             
-            if len(chunks) >5:
-                print(f"{len(chunks)-5 }, more chunks")
+    #         if len(chunks) >5:
+    #             print(f"{len(chunks)-5 }, more chunks")
     
     return chunks
 
@@ -73,7 +73,7 @@ def split_documents(documents):
 def create_vector_store(chunks, persist_directory= "db/chroma_db"):
     #embedding model to convert the chunks in vector embeddings
     #initializing the embedding model
-    embedding_model= OllamaEmbeddings(model="nomic-embed-text")
+    embedding_model= OllamaEmbeddings( model="nomic-embed-text", base_url="http://localhost:11434")
     
     #creating chromadb vector store
     #this actually takes all chunks converts into vector embeddings and store in vector db
@@ -81,7 +81,7 @@ def create_vector_store(chunks, persist_directory= "db/chroma_db"):
         documents= chunks, #it takes the langchain documents
         embedding=embedding_model, #we have specified the model above
         persist_directory=persist_directory, #this is where we store it locally
-        collection_metadata={"hnsw:Space":"cosine"} #the algorithm is cosine similarity
+        collection_metadata={"hnsw:space":"cosine"} #the algorithm is cosine similarity
     )
     print("Finished creating the store")
 
