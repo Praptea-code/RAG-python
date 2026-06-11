@@ -22,7 +22,17 @@ def load_documents(docs_path="docs"):
         raise FileNotFoundError("The file does not exixst")
     
     #load all .txt files from the directory docs
+    loader= DirectoryLoader(
+        path=docs_path,
+        glob="*.txt" #only look for txt files
+        loader_cls=TextLoader #using txt loader class we imported this before 
+    )
 
+    documents=loader.load() # this will list langchain documents which have page content, attributes and metadata arttibutes
+
+    if len(documents)==0:
+        raise FileNotFoundError("No .txt files found add your documents first")
+    
 def main():
     print("Main function")
 
