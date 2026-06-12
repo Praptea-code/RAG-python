@@ -1,6 +1,8 @@
 from langchain_chroma import Chroma
 from langchain_community.embeddings import OllamaEmbeddings
 from dotenv import load_dotenv
+from langchain_ollama import ChatOllama
+from langchain_core.messages import HumanMessage,SystemMessage
 
 #our embeddings of the docs , the vector db we want access to its data
 persistent_directory ="db/chroma_db"
@@ -10,8 +12,8 @@ embedding_model= OllamaEmbeddings( model="nomic-embed-text", base_url="http://lo
 
 #recreating the vector store, pointing the new vector store with our old particular data
 db =Chroma(
-        embedding=embedding_model, #we have specified the model above
-        persistent_directory=persistent_directory, #this is where we store it locally
+        persist_directory=persistent_directory, #this is where we store it locally
+        embedding_function=embedding_model, #we have specified the model above
         collection_metadata={"hnsw:space":"cosine"} #the algorithm is cosine similarity to do the matching
     )
 
@@ -19,7 +21,7 @@ db =Chroma(
 #this retriever is going to retrieve the top 5 chunks of higher similarity with query embeddings
 retriever=db.as_retriever(search_kwargs={"k":5} )
 
-query="What was Microsoft's first hardware product release?"
+query="What was the original name of Microsoft before it became Microsoft?"
 
 #calling the retriever
 relevant_docs=retriever.invoke(query)
