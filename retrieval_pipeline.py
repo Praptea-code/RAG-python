@@ -9,14 +9,22 @@ persistent_directory ="db/chroma_db"
 embedding_model= OllamaEmbeddings( model="nomic-embed-text", base_url="http://localhost:11434")
 
 #recreating the vector store, pointing the new vector store with our old particular data
-db =Chroma.from_documents(
+db =Chroma(
         embedding=embedding_model, #we have specified the model above
         persistent_directory=persistent_directory, #this is where we store it locally
         collection_metadata={"hnsw:space":"cosine"} #the algorithm is cosine similarity to do the matching
     )
 
 #using the instance of db to create retriever component
-#this retriever is going to retrieve the top 3 chunks of higher similarity with query embeddings
-retriever=db.as_retriever(search_kwargs={"k":3} )
+#this retriever is going to retrieve the top 5 chunks of higher similarity with query embeddings
+retriever=db.as_retriever(search_kwargs={"k":5} )
 
+query="What was Microsoft's first hardware product release?"
+
+#calling the retriever
 relevant_docs=retriever.invoke(query)
+
+print(f"User Query :{query}")
+print("Context")
+for i, doc in enumerate(relevant_docs,1):
+    print(f"Document {i}: \n {doc.page_content} \n")
