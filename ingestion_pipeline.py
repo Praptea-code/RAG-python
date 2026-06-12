@@ -68,24 +68,33 @@ def split_documents(documents):
     
     return chunks
 
-#embedding ,creating and storing into the vector db 
-#passing all the chunks and the location where we want he db to be created
-def create_vector_store(chunks, persist_directory= "db/chroma_db"):
+def create_vector_store(chunks, persist_directory="db/chroma_db"):
     #embedding model to convert the chunks in vector embeddings
-    #initializing the embedding model
-    embedding_model= OllamaEmbeddings( model="nomic-embed-text", base_url="http://localhost:11434")
-    
-    #creating chromadb vector store
-    #this actually takes all chunks converts into vector embeddings and store in vector db
-    vectorstore =Chroma.from_documents(
-        documents= chunks, #it takes the langchain documents
-        embedding=embedding_model, #we have specified the model above
-        persist_directory=persist_directory, #this is where we store it locally
-        collection_metadata={"hnsw:space":"cosine"} #the algorithm is cosine similarity
+    #initializing the embedding model, running locally via ollama
+    embedding_model = OllamaEmbeddings(
+        model="nomic-embed-text", 
+        base_url="http://localhost:11434"
     )
-    print("Finished creating the store")
 
-    print(f"created and saved to {persist_directory}")
+    print(f"Embedding {len(chunks)} chunks...")
+
+    #creating chromadb vector store without inserting documents yet
+    #we initialize it empty first so we can add chunks in batches
+    vectorstore = Chroma(
+        embedding_function=embedding_model,
+        persist_directory=persist_directory,
+        collection_metadata={"hnsw:space": "cosine"}
+    )
+
+    #sending 50 chunks at a time instead of 1, much faster
+    batch_size = 50
+    for i in range(0, len(chunks), batch_size):
+        batch = chunks[i:i+batch_size]
+        vectorstore.add_documents(batch)
+        print(f"  Embedded {min(i+batch_size, len(chunks))}/{len(chunks)} chunks")
+
+    print("Finished creating the store")
+    print(f"Created and saved to {persist_directory}")
 
     return vectorstore
 
