@@ -37,7 +37,7 @@ for i, doc in enumerate(relevant_docs,1):
 combined_input= f"""Based on the following documents, please answer this question :{query} 
 
 Documents:
-{chr(10).join([f"{doc.page_content}" for doc in relevant_docs])}
+{"\n".join([f"{doc.page_content}" for doc in relevant_docs])}
 Please provide clear and helpful answer but only use the information from these documents. IF you cannot dins the answer then say "I dont have enought information to answer the questions"
 """
 #this is our llm model we load the llm model
